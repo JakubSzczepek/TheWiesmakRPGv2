@@ -1,1 +1,1175 @@
-<!DOCTYPE html>\n<html lang="pl">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Karta Postaci</title>\n    <style>\n        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }\n        @page { size: A4; margin: 20mm; }\n        .container { display: flex; flex-direction: column; }\n        .page { page-break-after: always; padding: 20px; border: 1px solid #ccc; margin-bottom: 20px; }\n        h1, h2, h3 { text-align: center; }\n        .stats, .traits, .spells, .equipment, .notes { margin: 20px 0; }\n        button { margin-top: 10px; }\n    </style>\n</head>\n<body>\n    <div class="container">\n        <div class="page">\n            <h1>Karta Postaci</h1>\n            <div class="stats">\n                <h2>Statystyki</h2>\n                <p>Siła: <input type="text" id="strength" /></p>\n                <p>Zręczność: <input type="text" id="dexterity" /></p>\n                <p>Inteligencja: <input type="text" id="intelligence" /></p>\n            </div>\n            <div class="traits">\n                <h2>Cechy</h2>\n                <textarea id="traits" rows="4" cols="50"></textarea>\n            </div>\n            <div class="spells">\n                <h2>Zaklęcia</h2>\n                <textarea id="spells" rows="4" cols="50"></textarea>\n            </div>\n            <div class="equipment">\n                <h2>Wyposażenie</h2>\n                <textarea id="equipment" rows="4" cols="50"></textarea>\n            </div>\n            <div class="notes">\n                <h2>Notatki</h2>\n                <textarea id="notes" rows="4" cols="50"></textarea>\n            </div>\n            <button onclick="exportToJson()">Eksportuj do JSON</button>\n            <button onclick="importFromJson()">Importuj z JSON</button>\n        </div>\n\n        <script>\n            function exportToJson() {\n                const characterData = {\n                    strength: document.getElementById('strength').value,\n                    dexterity: document.getElementById('dexterity').value,\n                    intelligence: document.getElementById('intelligence').value,\n                    traits: document.getElementById('traits').value,\n                    spells: document.getElementById('spells').value,\n                    equipment: document.getElementById('equipment').value,\n                    notes: document.getElementById('notes').value\n                };\n                const jsonString = JSON.stringify(characterData);\n                const blob = new Blob([jsonString], { type: 'application/json' });\n                const url = URL.createObjectURL(blob);\n                const a = document.createElement('a');\n                a.href = url;\n                a.download = 'character_data.json';\n                a.click();\n                URL.revokeObjectURL(url);\n            }\n            function importFromJson() {\n                const input = document.createElement('input');\n                input.type = 'file';\n                input.accept = 'application/json';\n                input.onchange = e => {\n                    const file = e.target.files[0];\n                    const reader = new FileReader();\n                    reader.onload = event => {\n                        const characterData = JSON.parse(event.target.result);\n                        document.getElementById('strength').value = characterData.strength;\n                        document.getElementById('dexterity').value = characterData.dexterity;\n                        document.getElementById('intelligence').value = characterData.intelligence;\n                        document.getElementById('traits').value = characterData.traits;\n                        document.getElementById('spells').value = characterData.spells;\n                        document.getElementById('equipment').value = characterData.equipment;\n                        document.getElementById('notes').value = characterData.notes;\n                    };\n                    reader.readAsText(file);\n                };\n                input.click();\n            }\n        </script>\n    </div>\n</body>\n</html>
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karta Postaci — Wiedźmin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Variables ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold:         #c9a44a;
+  --gold-dark:    #8b6914;
+  --gold-light:   #e8c97a;
+  --gold-faint:   rgba(201,164,74,0.18);
+  --red:          #8b1a1a;
+  --text:         #1a0f00;
+  --text-muted:   #5a4020;
+  --page-bg:      #fdf8ef;
+  --section-bg:   #faf3e0;
+  --header-bg:    linear-gradient(135deg, #1a0f00 0%, #3a2010 100%);
+  --font-title:   'Cinzel Decorative', 'Book Antiqua', Palatino, serif;
+  --font-head:    'Cinzel', 'Book Antiqua', Palatino, serif;
+  --font-body:    'Crimson Text', Georgia, 'Times New Roman', serif;
+}
+
+body {
+  background: #d4c8a8;
+  font-family: var(--font-body);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* ── Toolbar ───────────────────────────────────────────── */
+.toolbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  background: #1a0f00;
+  border-bottom: 2px solid var(--gold);
+  padding: 7px 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.toolbar-brand {
+  font-family: var(--font-head);
+  color: var(--gold);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  margin-right: auto;
+}
+.btn {
+  font-family: var(--font-head);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  padding: 5px 14px;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold);
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--gold); color: #1a0f00; }
+
+/* ── Pages wrapper ─────────────────────────────────────── */
+.pages-wrapper {
+  margin-top: 50px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+/* ── Single A4 page ────────────────────────────────────── */
+.page {
+  width: 210mm;
+  min-height: 297mm;
+  background: var(--page-bg);
+  box-shadow: 0 6px 36px rgba(0,0,0,0.38);
+  padding: 9mm 10mm;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+/* Inner decorative frame */
+.page::before {
+  content: '';
+  position: absolute;
+  inset: 5mm;
+  border: 1px solid rgba(201,164,74,0.22);
+  pointer-events: none;
+}
+
+/* ── Corner ornaments ──────────────────────────────────── */
+.page-corners {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.page-corners span {
+  position: absolute;
+  font-size: 18px;
+  color: var(--gold-dark);
+  opacity: 0.55;
+  line-height: 1;
+}
+.page-corners span:nth-child(1) { top: 6mm;  left: 7mm;  }
+.page-corners span:nth-child(2) { top: 6mm;  right: 7mm; }
+.page-corners span:nth-child(3) { bottom: 6mm; left: 7mm; }
+.page-corners span:nth-child(4) { bottom: 6mm; right: 7mm; }
+
+/* ── Section ───────────────────────────────────────────── */
+.section {
+  border: 1.5px solid var(--gold);
+  background: var(--section-bg);
+  display: flex;
+  flex-direction: column;
+}
+.section-head {
+  background: var(--header-bg);
+  padding: 3px 10px;
+  text-align: center;
+}
+.section-title {
+  font-family: var(--font-head);
+  font-size: 9.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.section-title::before,
+.section-title::after { content: ' ✦ '; color: var(--gold-light); font-size: 7px; }
+.section-body { padding: 5px 7px; flex: 1; }
+
+/* ── Character header ──────────────────────────────────── */
+.char-header {
+  border: 2px solid var(--gold);
+  background: var(--section-bg);
+}
+.char-title-bar {
+  background: var(--header-bg);
+  padding: 7px 12px 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.medallion svg { display: block; }
+.char-title-text { text-align: center; }
+.main-title {
+  font-family: var(--font-title);
+  font-size: 19px;
+  letter-spacing: 0.28em;
+  color: var(--gold);
+  display: block;
+}
+.main-subtitle {
+  font-family: var(--font-head);
+  font-size: 8px;
+  letter-spacing: 0.5em;
+  color: var(--gold-light);
+  opacity: 0.8;
+  display: block;
+  margin-top: 1px;
+}
+.char-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 0;
+  padding: 0;
+}
+.info-field {
+  padding: 5px 8px;
+  border-right: 1px solid rgba(201,164,74,0.25);
+  border-bottom: 1px solid rgba(201,164,74,0.25);
+}
+.info-field:nth-child(4n) { border-right: none; }
+.info-field.wide {
+  grid-column: 1 / -1;
+  border-right: none;
+  border-bottom: none;
+}
+.info-label {
+  font-family: var(--font-head);
+  font-size: 7.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 2px;
+}
+.info-field input,
+.info-field textarea {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text);
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  resize: none;
+  display: block;
+  padding: 0;
+}
+
+/* ── Main columns layout ───────────────────────────────── */
+.main-cols {
+  display: grid;
+  grid-template-columns: 59% 41%;
+  gap: 5px;
+  flex: 1;
+}
+.right-col { display: flex; flex-direction: column; gap: 5px; }
+
+/* ── Stats ─────────────────────────────────────────────── */
+.stats-groups {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+}
+.stat-group { break-inside: avoid; }
+.stat-group-title {
+  font-family: var(--font-head);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  border-bottom: 1px solid rgba(201,164,74,0.35);
+  padding-bottom: 2px;
+  margin-bottom: 2px;
+}
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1.5px 0;
+  border-bottom: 1px dotted rgba(201,164,74,0.2);
+}
+.stat-row:last-child { border-bottom: none; }
+.stat-label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stat-input {
+  width: 38px;
+  text-align: center;
+  font-family: var(--font-head);
+  font-size: 11px;
+  color: var(--text);
+  border: 1px solid var(--gold);
+  background: rgba(255,255,255,0.55);
+  padding: 1px 3px;
+  outline: none;
+  -moz-appearance: textfield;
+  flex-shrink: 0;
+}
+.stat-input::-webkit-outer-spin-button,
+.stat-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.stat-input:focus { background: rgba(201,164,74,0.12); }
+
+/* ── Standing (Poważanie) ──────────────────────────────── */
+.standing-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0 6px;
+}
+.standing-label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  padding: 2px 0;
+  border-bottom: 1px dotted rgba(201,164,74,0.2);
+}
+.standing-input {
+  width: 38px;
+  text-align: center;
+  font-family: var(--font-head);
+  font-size: 11px;
+  color: var(--text);
+  border: 1px solid var(--gold);
+  background: rgba(255,255,255,0.55);
+  padding: 1px 3px;
+  outline: none;
+  -moz-appearance: textfield;
+  border-bottom: 1px dotted rgba(201,164,74,0.2);
+  margin-bottom: 0;
+}
+.standing-input::-webkit-outer-spin-button,
+.standing-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+/* ── Traits ─────────────────────────────────────────────── */
+.trait-item {
+  border-left: 2.5px solid var(--gold);
+  padding: 3px 6px 3px 7px;
+  margin-bottom: 5px;
+  background: rgba(255,255,255,0.25);
+  position: relative;
+}
+.trait-name-input {
+  font-family: var(--font-head);
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--text);
+  border: none;
+  background: transparent;
+  outline: none;
+  width: calc(100% - 16px);
+  display: block;
+  margin-bottom: 1px;
+  letter-spacing: 0.04em;
+}
+.trait-desc-textarea {
+  font-family: var(--font-body);
+  font-size: 10px;
+  color: var(--text-muted);
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  resize: none;
+  display: block;
+  font-style: italic;
+  line-height: 1.35;
+  min-height: 24px;
+}
+.btn-del {
+  position: absolute;
+  top: 3px; right: 4px;
+  font-size: 9px;
+  color: var(--red);
+  opacity: 0.35;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--font-head);
+  letter-spacing: 0;
+  line-height: 1;
+}
+.btn-del:hover { opacity: 1; }
+
+/* ── Clocks bar ─────────────────────────────────────────── */
+.clocks-bar {
+  border: 1.5px solid var(--gold);
+  background: var(--section-bg);
+  padding: 5px 10px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.clock-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  min-width: 0;
+}
+.clock-label {
+  font-family: var(--font-head);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  white-space: nowrap;
+}
+.clock-dots { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+.clock-dot {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+  flex-shrink: 0;
+}
+.clock-dot.filled {
+  background: var(--gold);
+  box-shadow: 0 0 5px rgba(201,164,74,0.5);
+}
+.spell-dot {
+  border-radius: 3px;
+  border-color: var(--red);
+  transform: rotate(45deg);
+  width: 13px;
+  height: 13px;
+}
+.spell-dot.spell-large {
+  width: 20px;
+  height: 20px;
+}
+.spell-dot.filled {
+  background: var(--red);
+  box-shadow: 0 0 5px rgba(139,26,26,0.45);
+}
+.spell-sep {
+  width: 1px;
+  height: 22px;
+  background: rgba(139,26,26,0.35);
+  flex-shrink: 0;
+  margin: 0 3px;
+  align-self: center;
+}
+.clock-row + .clock-row {
+  border-left: 1.5px solid rgba(201,164,74,0.4);
+  padding-left: 16px;
+  margin-left: 4px;
+}
+
+/* ── Spell cards ─────────────────────────────────────────── */
+.spells-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.spell-card {
+  border: 1px solid var(--gold);
+  padding: 5px 7px;
+  background: rgba(255,255,255,0.35);
+  position: relative;
+}
+.spell-top {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 3px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid rgba(201,164,74,0.3);
+}
+.spell-name-input {
+  font-family: var(--font-head);
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--text);
+  border: none;
+  background: transparent;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+}
+.spell-cost {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.spell-cost label {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--font-head);
+  font-size: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.spell-cost input[type=checkbox] {
+  accent-color: var(--red);
+  width: 11px;
+  height: 11px;
+  cursor: pointer;
+}
+.spell-desc-textarea {
+  font-family: var(--font-body);
+  font-size: 10px;
+  color: var(--text-muted);
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  resize: none;
+  min-height: 44px;
+  line-height: 1.38;
+}
+
+/* ── Equipment table ────────────────────────────────────── */
+.eq-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.eq-table th {
+  font-family: var(--font-head);
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  text-align: left;
+  padding: 3px 6px 3px 4px;
+  border-bottom: 1px solid var(--gold);
+  background: rgba(201,164,74,0.07);
+}
+.eq-table td {
+  padding: 2px 6px 2px 4px;
+  vertical-align: top;
+  border-bottom: 1px dotted rgba(201,164,74,0.22);
+}
+.eq-table tr:last-child td { border-bottom: none; }
+.eq-table input,
+.eq-table textarea {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text);
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  resize: none;
+  min-height: 18px;
+  padding: 0;
+}
+.eq-del-btn {
+  font-size: 9px;
+  color: var(--red);
+  opacity: 0.3;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--font-head);
+}
+.eq-del-btn:hover { opacity: 1; }
+
+/* ── Notes ──────────────────────────────────────────────── */
+.notes-content {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text);
+  width: 100%;
+  min-height: 80px;
+  line-height: 1.6;
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+  cursor: text;
+}
+.notes-content:empty::before {
+  content: attr(data-placeholder);
+  color: #b0a080;
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* ── Add button ─────────────────────────────────────────── */
+.btn-add {
+  display: block;
+  width: 100%;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px dashed rgba(201,164,74,0.5);
+  color: var(--gold-dark);
+  font-family: var(--font-head);
+  font-size: 8.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.18s, border-style 0.18s;
+  margin-top: 5px;
+}
+.btn-add:hover { background: var(--gold-faint); border-style: solid; }
+
+/* ── Print ──────────────────────────────────────────────── */
+@media print {
+  @page { size: A4; margin: 0; }
+
+  body { background: white; }
+
+  .toolbar { display: none !important; }
+
+  .pages-wrapper {
+    margin-top: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  .page {
+    box-shadow: none !important;
+    page-break-after: always;
+    break-after: page;
+  }
+  /* Pages 1 & 2 should not break inside; page 3 (notes) may overflow naturally */
+  #page-1, #page-2 {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .page:last-child {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  .page::before { display: none; }
+
+  input, textarea {
+    border: none !important;
+    background: transparent !important;
+    outline: none !important;
+    -webkit-appearance: none;
+  }
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button { display: none; }
+
+  .btn-add, .btn-del, .eq-del-btn { display: none !important; }
+  .no-print { display: none !important; }
+
+  .stat-input, .standing-input { border: none !important; }
+  .spell-desc-textarea, .trait-desc-textarea { overflow: visible; }
+  .clock-dot { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .clock-dot.filled { background: var(--gold) !important; }
+  .spell-dot.filled { background: var(--red) !important; }
+
+  /* Ukryj placeholder text na wydruku */
+  input::placeholder, textarea::placeholder { color: transparent !important; }
+
+  /* Ukryj puste cechy, czary i wiersze ekwipunku na wydruku */
+  .trait-item:has(.trait-name-input:placeholder-shown) { display: none !important; }
+  .spell-card:has(.spell-name-input:placeholder-shown) { display: none !important; }
+  #eq-tbody tr:has(td:first-child textarea:placeholder-shown) { display: none !important; }
+
+  /* Notatki — div przepływa naturalnie przez strony */
+  .notes-content { white-space: pre-wrap; word-break: break-word; }
+  .notes-content:empty::before { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <span class="toolbar-brand">⚔ &nbsp;KARTA POSTACI — WIEDŹMIN</span>
+  <input type="file" id="fileInput" accept=".json" hidden>
+  <button class="btn" onclick="document.getElementById('fileInput').click()">📂 Wczytaj JSON</button>
+  <button class="btn" onclick="exportJSON()">💾 Eksportuj JSON</button>
+  <button class="btn" onclick="window.print()">🖨️ Drukuj (A4)</button>
+</div>
+
+<div class="pages-wrapper">
+
+<!-- ═══════════════════════════════════════════════════════
+     STRONA 1 — statystyki, cechy, zegary
+═══════════════════════════════════════════════════════ -->
+<div class="page" id="page-1">
+  <div class="page-corners">
+    <span>❧</span><span style="transform:scaleX(-1);display:inline-block">❧</span>
+    <span style="transform:scaleY(-1);display:inline-block">❧</span>
+    <span style="transform:scale(-1,-1);display:inline-block">❧</span>
+  </div>
+
+  <!-- ── Character header ── -->
+  <div class="char-header">
+    <div class="char-title-bar">
+      <div class="medallion">
+        <svg width="38" height="38" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="44" fill="none" stroke="#c9a44a" stroke-width="2.2"/>
+          <circle cx="50" cy="50" r="36" fill="none" stroke="#c9a44a" stroke-width="0.8"/>
+          <polygon points="50,14 53.5,40 78,28 62,50 82,74 50,60 18,74 38,50 22,28 46.5,40"
+                   fill="none" stroke="#c9a44a" stroke-width="1.6"/>
+          <circle cx="50" cy="50" r="5" fill="#c9a44a" opacity="0.7"/>
+        </svg>
+      </div>
+      <div class="char-title-text">
+        <span class="main-title">Karta Postaci</span>
+        <span class="main-subtitle">— Wiedźmin: Stary Świat —</span>
+      </div>
+      <div class="medallion">
+        <svg width="38" height="38" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="44" fill="none" stroke="#c9a44a" stroke-width="2.2"/>
+          <circle cx="50" cy="50" r="36" fill="none" stroke="#c9a44a" stroke-width="0.8"/>
+          <polygon points="50,14 53.5,40 78,28 62,50 82,74 50,60 18,74 38,50 22,28 46.5,40"
+                   fill="none" stroke="#c9a44a" stroke-width="1.6"/>
+          <circle cx="50" cy="50" r="5" fill="#c9a44a" opacity="0.7"/>
+        </svg>
+      </div>
+    </div>
+    <div class="char-info-grid">
+      <div class="info-field">
+        <span class="info-label">Imię</span>
+        <input type="text" id="f-imie" placeholder="—">
+      </div>
+      <div class="info-field">
+        <span class="info-label">Nazwisko</span>
+        <input type="text" id="f-nazwisko" placeholder="—">
+      </div>
+      <div class="info-field">
+        <span class="info-label">Rasa</span>
+        <input type="text" id="f-rasa" placeholder="—">
+      </div>
+      <div class="info-field">
+        <span class="info-label">Profesja</span>
+        <input type="text" id="f-profesja" placeholder="—">
+      </div>
+      <div class="info-field wide">
+        <span class="info-label">Pochodzenie</span>
+        <input type="text" id="f-pochodzenie" placeholder="—">
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main columns ── -->
+  <div class="main-cols" style="flex:1">
+
+    <!-- Left: Stats -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-title">Cechy Ciała i Umysłu</span>
+      </div>
+      <div class="section-body">
+        <div class="stats-groups" id="stats-container"></div>
+      </div>
+    </div>
+
+    <!-- Right: Standing + Traits -->
+    <div class="right-col">
+
+      <div class="section">
+        <div class="section-head">
+          <span class="section-title">Poważanie Specjalne</span>
+        </div>
+        <div class="section-body">
+          <div class="standing-grid" id="standing-container"></div>
+        </div>
+      </div>
+
+      <div class="section" style="flex:1">
+        <div class="section-head">
+          <span class="section-title">Cechy Rasy</span>
+        </div>
+        <div class="section-body">
+          <div id="traits-container"></div>
+          <button class="btn-add" onclick="addTrait()">+ Dodaj cechę</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Clocks ── -->
+  <div class="clocks-bar">
+    <div class="clock-row">
+      <span class="clock-label">Zegar Losu</span>
+      <div class="clock-dots" id="fate-clock"></div>
+    </div>
+    <div class="clock-row">
+      <span class="clock-label">Komórki Czarów</span>
+      <div class="clock-dots" id="spell-slots"></div>
+    </div>
+  </div>
+
+</div><!-- /page-1 -->
+
+<!-- ═══════════════════════════════════════════════════════
+     STRONA 2 — czary, ekwipunek, notatki
+═══════════════════════════════════════════════════════ -->
+<div class="page" id="page-2">
+  <div class="page-corners">
+    <span>❧</span><span style="transform:scaleX(-1);display:inline-block">❧</span>
+    <span style="transform:scaleY(-1);display:inline-block">❧</span>
+    <span style="transform:scale(-1,-1);display:inline-block">❧</span>
+  </div>
+
+  <!-- Spells -->
+  <div class="section" style="flex:1">
+    <div class="section-head">
+      <span class="section-title">Czary i Zdolności Specjalne</span>
+    </div>
+    <div class="section-body">
+      <div class="spells-grid" id="spells-container"></div>
+      <button class="btn-add" onclick="addSpell()">+ Dodaj czar / zdolność</button>
+    </div>
+  </div>
+
+</div><!-- /page-2 -->
+
+<!-- ═══════════════════════════════════════════════════════
+     STRONA 3 — ekwipunek, notatki
+═══════════════════════════════════════════════════════ -->
+<div class="page" id="page-3">
+  <div class="page-corners">
+    <span>❧</span><span style="transform:scaleX(-1);display:inline-block">❧</span>
+    <span style="transform:scaleY(-1);display:inline-block">❧</span>
+    <span style="transform:scale(-1,-1);display:inline-block">❧</span>
+  </div>
+
+  <!-- Equipment -->
+  <div class="section">
+    <div class="section-head">
+      <span class="section-title">Ekwipunek</span>
+    </div>
+    <div class="section-body">
+      <table class="eq-table">
+        <thead>
+          <tr>
+            <th style="width:22%">Nazwa</th>
+            <th style="width:46%">Opis</th>
+            <th style="width:24%">Wartość / Działanie</th>
+            <th class="no-print" style="width:8%"></th>
+          </tr>
+        </thead>
+        <tbody id="eq-tbody"></tbody>
+      </table>
+      <button class="btn-add" onclick="addEquipmentItem()">+ Dodaj przedmiot</button>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="section" style="flex:1">
+    <div class="section-head">
+      <span class="section-title">Notatki i Historia Postaci</span>
+    </div>
+    <div class="section-body">
+      <div id="f-notatki" class="notes-content" contenteditable="true"
+           data-placeholder="Historia postaci, notatki z sesji, kontakty, relacje..."></div>
+    </div>
+  </div>
+
+</div><!-- /page-3 -->
+
+</div><!-- /pages-wrapper -->
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════
+// Dane statyczne
+// ═══════════════════════════════════════════════════════
+
+const STAT_GROUPS = [
+  { title: 'Ciało', entries: [
+    ['zdrowie',       'Zdrowie'],
+    ['sila',          'Siła'],
+    ['zrecznosc',     'Zręczność'],
+    ['wytrzymalosc',  'Wytrzymałość'],
+    ['udzwig',        'Udźwig'],
+    ['tempo',         'Tempo'],
+  ]},
+  { title: 'Walka', entries: [
+    ['uniki',         'Uniki'],
+    ['walka_wrecz',   'Walka Wręcz'],
+    ['bron_dystansowa','Broń Dystansowa'],
+    ['inicjatywa',    'Inicjatywa'],
+    ['odwaga',        'Odwaga'],
+  ]},
+  { title: 'Umysł', entries: [
+    ['wola',          'Wola'],
+    ['inteligencja',  'Inteligencja'],
+    ['percepcja',     'Percepcja'],
+    ['dedukcja',      'Dedukcja'],
+    ['czujnosc',      'Czujność'],
+    ['wyksztalcenie', 'Wykształcenie'],
+  ]},
+  { title: 'Społeczne', entries: [
+    ['perswazja',     'Perswazja'],
+    ['charyzma',      'Charyzma'],
+    ['Amory',         'Amory'],
+    ['opanowanie',    'Opanowanie'],
+    ['komunikatywnosc','Komunikatywność'],
+    ['obycie',        'Obycie'],
+    ['zastraszanie',  'Zastraszanie'],
+    ['oszustwo',      'Oszustwo'],
+  ]},
+  { title: 'Umiejętności', entries: [
+    ['alchemia',      'Alchemia'],
+    ['rzemioslo',     'Rzemiosło'],
+    ['interesy',      'Interesy'],
+    ['skradanie',     'Skradanie'],
+    ['strategia',     'Strategia'],
+  ]},
+];
+
+const STANDING_FIELDS = [
+  ['polnoc',              'Północ'],
+  ['skellige',            'Skellige'],
+  ['elfy',                'Elfy'],
+  ['krasnoludy',          'Krasnoludy'],
+  ['nilfgaard',           'Nilfgaard'],
+  ['slawa',               'Sława'],
+  ['jezyk_wspolny',       'Język Wspólny'],
+  ['starsza_mowa',        'Starsza Mowa'],
+  ['wiedza_o_potworach',  'Wiedza o Potworach'],
+  ['wiedza_o_swiecie',    'Wiedza o Świecie'],
+  ['wiedza_magiczna',     'Wiedza Magiczna'],
+];
+
+// ═══════════════════════════════════════════════════════
+// Render
+// ═══════════════════════════════════════════════════════
+
+function renderStats(data) {
+  const c = document.getElementById('stats-container');
+  c.innerHTML = '';
+  STAT_GROUPS.forEach(group => {
+    const gEl = document.createElement('div');
+    gEl.className = 'stat-group';
+    gEl.innerHTML = `<div class="stat-group-title">${group.title}</div>`;
+    group.entries.forEach(([key, label]) => {
+      const val = data ? (data[key] ?? 0) : 0;
+      const row = document.createElement('div');
+      row.className = 'stat-row';
+      row.innerHTML = `<span class="stat-label">${label}</span>`
+        + `<input type="number" class="stat-input" data-key="${key}" value="${val}" min="0" max="99">`;
+      gEl.appendChild(row);
+    });
+    c.appendChild(gEl);
+  });
+}
+
+function renderStanding(data) {
+  const c = document.getElementById('standing-container');
+  c.innerHTML = '';
+  STANDING_FIELDS.forEach(([key, label]) => {
+    const val = data ? (data[key] ?? 0) : 0;
+    c.insertAdjacentHTML('beforeend',
+      `<span class="standing-label">${label}</span>`
+      + `<input type="number" class="standing-input" data-key="${key}" value="${val}" min="-99" max="99">`
+    );
+  });
+}
+
+function renderTraits(traits) {
+  const c = document.getElementById('traits-container');
+  c.innerHTML = '';
+  (traits || []).forEach(t => c.appendChild(makeTraitEl(t.cecha || '', t.dzialanie || '')));
+}
+
+function makeTraitEl(name, desc) {
+  const d = document.createElement('div');
+  d.className = 'trait-item';
+  d.innerHTML =
+    `<button class="btn-del" onclick="this.closest('.trait-item').remove()" title="Usuń">✕</button>`
+    + `<input type="text" class="trait-name-input" value="${esc(name)}" placeholder="Nazwa cechy...">`
+    + `<textarea class="trait-desc-textarea" oninput="autoResize(this)" placeholder="Opis działania...">${esc(desc)}</textarea>`;
+  // delay resize until in DOM
+  requestAnimationFrame(() => {
+    const ta = d.querySelector('textarea');
+    if (ta) autoResize(ta);
+  });
+  return d;
+}
+
+function renderClocks(zegarLosu, komorkiCzarow) {
+  const fate  = document.getElementById('fate-clock');
+  const slots = document.getElementById('spell-slots');
+  fate.innerHTML = '';
+  slots.innerHTML = '';
+
+  (zegarLosu   || Array(11).fill(false)).forEach(active => {
+    const dot = document.createElement('div');
+    dot.className = 'clock-dot' + (active ? ' filled' : '');
+    dot.onclick = () => dot.classList.toggle('filled');
+    fate.appendChild(dot);
+  });
+
+  (komorkiCzarow || Array(5).fill(false)).forEach((active, i) => {
+    if (i === 3) {
+      const sep = document.createElement('div');
+      sep.className = 'spell-sep';
+      slots.appendChild(sep);
+    }
+    const isLarge = i >= 3;
+    const dot = document.createElement('div');
+    dot.className = 'clock-dot spell-dot' + (isLarge ? ' spell-large' : '') + (active ? ' filled' : '');
+    dot.onclick = () => dot.classList.toggle('filled');
+    slots.appendChild(dot);
+  });
+}
+
+function renderSpells(czary) {
+  const c = document.getElementById('spells-container');
+  c.innerHTML = '';
+  (czary || []).forEach(s => c.appendChild(makeSpellEl(s)));
+}
+
+function makeSpellEl(s) {
+  const d = document.createElement('div');
+  d.className = 'spell-card';
+  d.innerHTML =
+    `<button class="btn-del" onclick="this.closest('.spell-card').remove()" title="Usuń">✕</button>`
+    + `<div class="spell-top">`
+    + `<input type="text" class="spell-name-input" value="${esc(s.nazwa || '')}" placeholder="Nazwa czaru / zdolności...">`
+    + `<div class="spell-cost">`
+    + `<label title="Koszt Magii"><input type="checkbox" ${s.kosztM ? 'checked' : ''}> M</label>`
+    + `<label title="Koszt Determinacji"><input type="checkbox" ${s.kosztD ? 'checked' : ''}> D</label>`
+    + `</div></div>`
+    + `<textarea class="spell-desc-textarea" oninput="autoResize(this)" placeholder="Opis efektu i zasad...">${esc(s.opis || '')}</textarea>`;
+  requestAnimationFrame(() => {
+    const ta = d.querySelector('textarea');
+    if (ta) autoResize(ta);
+  });
+  return d;
+}
+
+function renderEquipment(ekwipunek) {
+  const tbody = document.getElementById('eq-tbody');
+  tbody.innerHTML = '';
+  (ekwipunek || []).forEach(item => tbody.appendChild(makeEqRow(item)));
+}
+
+function makeEqRow(item) {
+  const tr = document.createElement('tr');
+  tr.innerHTML =
+    `<td><textarea oninput="autoResize(this)" placeholder="Nazwa...">${esc(item.nazwa || '')}</textarea></td>`
+    + `<td><textarea oninput="autoResize(this)" placeholder="Opis...">${esc(item.opis || '')}</textarea></td>`
+    + `<td><input type="text" value="${esc(item.wartoscDzialanie || '')}" placeholder="DMG / wartość..."></td>`
+    + `<td class="no-print"><button class="eq-del-btn" onclick="this.closest('tr').remove()" title="Usuń">✕</button></td>`;
+  requestAnimationFrame(() => {
+    tr.querySelectorAll('textarea').forEach(ta => autoResize(ta));
+  });
+  return tr;
+}
+
+function renderNotes(notatki) {
+  document.getElementById('f-notatki').textContent = notatki || '';
+}
+
+// ═══════════════════════════════════════════════════════
+// Load character
+// ═══════════════════════════════════════════════════════
+
+function loadCharacter(data) {
+  const d = data.danePostaci || {};
+  document.getElementById('f-imie').value       = d.imie        || '';
+  document.getElementById('f-nazwisko').value   = d.nazwisko    || '';
+  document.getElementById('f-rasa').value       = d.rasa        || '';
+  document.getElementById('f-profesja').value   = d.profesja    || '';
+  document.getElementById('f-pochodzenie').value = d.pochodzenie || '';
+
+  renderStats(data.cialoRozumCechy);
+  renderStanding(data.powazanieSpecjalne);
+  renderTraits(data.cechyRasy);
+  renderClocks(data.zegarLosu, data.komorkiCzarow);
+  renderSpells(data.czary);
+  renderEquipment(data.ekwipunek);
+  renderNotes(data.notatki);
+}
+
+// ═══════════════════════════════════════════════════════
+// Export JSON
+// ═══════════════════════════════════════════════════════
+
+function exportJSON() {
+  const danePostaci = {
+    imie:       document.getElementById('f-imie').value,
+    nazwisko:   document.getElementById('f-nazwisko').value,
+    rasa:       document.getElementById('f-rasa').value,
+    profesja:   document.getElementById('f-profesja').value,
+    pochodzenie:document.getElementById('f-pochodzenie').value,
+  };
+
+  const cialoRozumCechy = {};
+  document.querySelectorAll('#stats-container .stat-input').forEach(inp => {
+    cialoRozumCechy[inp.dataset.key] = parseInt(inp.value) || 0;
+  });
+
+  const powazanieSpecjalne = {};
+  document.querySelectorAll('#standing-container .standing-input').forEach(inp => {
+    powazanieSpecjalne[inp.dataset.key] = parseInt(inp.value) || 0;
+  });
+
+  const cechyRasy = [];
+  document.querySelectorAll('#traits-container .trait-item').forEach(el => {
+    cechyRasy.push({
+      cecha:     el.querySelector('.trait-name-input').value,
+      dzialanie: el.querySelector('.trait-desc-textarea').value,
+    });
+  });
+
+  const zegarLosu = [...document.querySelectorAll('#fate-clock .clock-dot')]
+    .map(d => d.classList.contains('filled'));
+  const komorkiCzarow = [...document.querySelectorAll('#spell-slots .clock-dot')]
+    .map(d => d.classList.contains('filled'));
+
+  const czary = [];
+  document.querySelectorAll('#spells-container .spell-card').forEach(card => {
+    const cbs = card.querySelectorAll('input[type=checkbox]');
+    czary.push({
+      nazwa:  card.querySelector('.spell-name-input').value,
+      opis:   card.querySelector('.spell-desc-textarea').value,
+      kosztM: cbs[0]?.checked || false,
+      kosztD: cbs[1]?.checked || false,
+    });
+  });
+
+  const ekwipunek = [];
+  document.querySelectorAll('#eq-tbody tr').forEach(row => {
+    const inputs = row.querySelectorAll('input, textarea');
+    ekwipunek.push({
+      nazwa:            inputs[0]?.value || '',
+      opis:             inputs[1]?.value || '',
+      wartoscDzialanie: inputs[2]?.value || '',
+    });
+  });
+
+  const notatki = document.getElementById('f-notatki').innerText || '';
+
+  const out = { danePostaci, cechyRasy, powazanieSpecjalne, cialoRozumCechy,
+                komorkiCzarow, zegarLosu, czary, ekwipunek, notatki };
+
+  const slug = (danePostaci.imie + '_' + danePostaci.nazwisko)
+    .replace(/\s+/g, '_').replace(/[^\wÀ-ſ]/g, '').slice(0, 40) || 'postac';
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = slug + '_karta.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ═══════════════════════════════════════════════════════
+// Add items
+// ═══════════════════════════════════════════════════════
+
+function addTrait()         { document.getElementById('traits-container').appendChild(makeTraitEl('', '')); }
+function addSpell()         { document.getElementById('spells-container').appendChild(makeSpellEl({ nazwa:'', opis:'', kosztM:false, kosztD:false })); }
+function addEquipmentItem() { document.getElementById('eq-tbody').appendChild(makeEqRow({ nazwa:'', opis:'', wartoscDzialanie:'' })); }
+
+// ═══════════════════════════════════════════════════════
+// Utilities
+// ═══════════════════════════════════════════════════════
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ═══════════════════════════════════════════════════════
+// File input
+// ═══════════════════════════════════════════════════════
+
+document.getElementById('fileInput').addEventListener('change', function (e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      loadCharacter(JSON.parse(ev.target.result));
+    } catch (err) {
+      alert('Błąd parsowania JSON:\n' + err.message);
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+  this.value = '';
+});
+
+// ═══════════════════════════════════════════════════════
+// Init — pusta karta
+// ═══════════════════════════════════════════════════════
+
+renderStats(null);
+renderStanding(null);
+renderTraits([]);
+renderClocks(null, null);
+renderSpells([]);
+renderEquipment([]);
+</script>
+</body>
+</html>
